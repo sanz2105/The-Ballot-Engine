@@ -1,0 +1,29 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Leaderboard: anyone can read, but only authenticated users can
+    // write their own document (keyed by their UID).
+    match /leaderboard/{userId} {
+      allow read: if true;
+      allow create, update: if request.auth != null
+                            && request.auth.uid == userId
+                            && isValidScore(request.resource.data);
+      allow delete: if false;
+    }
+  }
+
+  // Validate the shape and types of score data before writing
+  function isValidScore(data) {
+    return data.keys().hasAll(['userId', 'displayName', 'xp', 'totalPoints', 'grade', 'completedAt'])
+      && data.userId is string
+      && data.displayName is string
+      && data.xp is int
+      && data.xp >= 0
+      && data.totalPoints is int
+      && data.totalPoints >= 0
+      && data.totalPoints <= 24
+      && data.grade is string
+      && data.completedAt is int;
+  }
+}

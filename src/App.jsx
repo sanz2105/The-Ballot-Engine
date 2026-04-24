@@ -3,7 +3,6 @@ import { useAuth } from './hooks/useAuth'
 import IntroScreen from './screens/IntroScreen'
 import GameScreen from './screens/GameScreen'
 import ResultsScreen from './screens/ResultsScreen'
-import { trackEvent } from './lib/firebase'
 
 export default function App() {
   const engine = useGameEngine()
@@ -11,7 +10,7 @@ export default function App() {
 
   const handleStart = () => {
     engine.startGame()
-    trackEvent('game_started', { is_authenticated: !!user })
+    engine.trackGameStarted(!!user)
   }
 
   if (engine.gameScreen === 'intro') {

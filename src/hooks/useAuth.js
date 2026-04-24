@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { auth, signInWithGoogle, signOutUser } from '../lib/firebase'
+import { trackSignIn, trackSignOut } from '../lib/firebase'
 import { onAuthStateChanged } from 'firebase/auth'
 
 export function useAuth() {
@@ -22,6 +23,7 @@ export function useAuth() {
   const signIn = async () => {
     try {
       await signInWithGoogle()
+      trackSignIn()
     } catch (error) {
       // User closed popup or cancelled - not an error
       if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
@@ -34,6 +36,7 @@ export function useAuth() {
   const signOut = async () => {
     try {
       await signOutUser()
+      trackSignOut()
     } catch (error) {
       console.error('Sign-out error:', error)
     }

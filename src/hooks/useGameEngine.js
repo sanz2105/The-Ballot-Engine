@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import { PHASES } from '../data/phases'
 import { BADGES } from '../data/badges'
 import { getNarratorFeedback } from '../lib/gemini'
-import { trackEvent } from '../lib/firebase'
+import { trackBadgeUnlocked, trackPhaseComplete, trackGameComplete, trackGameStarted } from '../lib/firebase'
 
 export const calculateGrade = (points, maxPoints) => {
   const pct = (points / maxPoints) * 100
@@ -48,7 +48,7 @@ export const useGameEngine = () => {
         if (badge.check(stats) && !unlockedBadges.includes(badge.id)) {
           newBadges.push(badge)
           setUnlockedBadges((prev) => [...prev, badge.id])
-          trackEvent('badge_unlocked', { badge_id: badge.id })
+          trackBadgeUnlocked(badge.id)
         }
       }
       return newBadges
@@ -151,12 +151,7 @@ export const useGameEngine = () => {
           }
         })
 
-      trackEvent('phase_completed', {
-        phase_number: currentPhase.number,
-        option_chosen: option.id,
-        points_earned: option.points,
-        time_taken: timeTaken,
-      })
+      trackPhaseComplete(currentPhase.number, option.id, option.points, timeTaken, newCombo)
     },
     [stage, phaseIndex, combo, maxCombo, phasesCompleted, perfectPhases, fastCorrectAnswers, checkBadges]
   )
@@ -166,8 +161,9 @@ export const useGameEngine = () => {
       const totalPoints = phaseResults.reduce((sum, r) => sum + r.points, 0)
       const maxPoints = PHASES.length * 3
       const { grade } = calculateGrade(totalPoints, maxPoints)
+      const badgesCount = phaseResults.length > 0 ? unlockedBadges.length : 0
       setGameScreen('results')
-      trackEvent('game_completed', { total_xp: xp, grade })
+      trackGameComplete(xp, grade, totalPoints, badgesCount)
     } else {
       setPhaseIndex((prev) => prev + 1)
       setStage('question')
@@ -175,7 +171,7 @@ export const useGameEngine = () => {
       setNarration('')
       phaseStartTimeRef.current = Date.now()
     }
-  }, [phaseIndex, xp, phaseResults])
+  }, [phaseIndex, xp, phaseResults, unlockedBadges.length])
 
   const startGame = useCallback(() => {
     setGameScreen('game')
@@ -215,6 +211,7 @@ export const useGameEngine = () => {
   const currentPhase = PHASES[phaseIndex]
 
   return {
+    trackGameStarted,
     gameScreen,
     phaseIndex,
     stage,
