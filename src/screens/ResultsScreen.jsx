@@ -5,10 +5,26 @@ import { getLevelForXP } from '../data/levels'
 import { calculateGrade } from '../hooks/useGameEngine'
 import { submitScore, getTopScores, getUserRank } from '../services/leaderboard'
 import { createPerfTrace, trackEvent } from '../lib/firebase'
+import LanguageSelector from '../components/LanguageSelector'
+import ExportPanel from '../components/ExportPanel'
+import { useTranslation } from '../services/translateService'
 
 export default function ResultsScreen({ phaseResults, xp, unlockedBadges, user, onRestart }) {
   const [leaderboard, setLeaderboard] = useState([])
   const [userRank, setUserRank] = useState(null)
+  const { t, language, registerStrings } = useTranslation()
+
+  useEffect(() => {
+    if (language !== 'en') {
+      const strings = [
+        'Verdania Election — Complete',
+        'THE BALLOT ENGINE',
+        ...phaseResults.map((r, i) => PHASES[i].title),
+        ...phaseResults.map((r, i) => PHASES[i].options.find(o => o.id === r.optionId)?.text || '')
+      ].filter(Boolean)
+      registerStrings(strings)
+    }
+  }, [language, phaseResults, registerStrings])
 
   useEffect(() => {
     const submitAndFetch = async () => {
@@ -63,6 +79,10 @@ export default function ResultsScreen({ phaseResults, xp, unlockedBadges, user, 
     >
       {/* Header */}
       <div style={{ textAlign: 'center', marginBottom: '3rem', maxWidth: '600px' }}>
+        <div style={{ position: 'absolute', top: '1.5rem', right: '1.5rem' }}>
+          <LanguageSelector />
+        </div>
+
         <h1
           style={{
             fontSize: '1rem',
@@ -73,7 +93,7 @@ export default function ResultsScreen({ phaseResults, xp, unlockedBadges, user, 
             textTransform: 'uppercase',
           }}
         >
-          Verdania Election — Complete
+          {t('Verdania Election — Complete')}
         </h1>
 
         <h2
@@ -85,8 +105,9 @@ export default function ResultsScreen({ phaseResults, xp, unlockedBadges, user, 
             marginBottom: '2rem',
           }}
         >
-          THE BALLOT ENGINE
+          {t('THE BALLOT ENGINE')}
         </h2>
+      </div>
 
         {/* Stats Row */}
         <div
@@ -361,9 +382,19 @@ export default function ResultsScreen({ phaseResults, xp, unlockedBadges, user, 
           </div>
         )}
 
-        {/* Restart Button */}
-        <button
-          onClick={onRestart}
+        <ExportPanel gameResults={phaseResults.map((r, i) => ({
+          ...r,
+          title: PHASES[i].title,
+          decision: PHASES[i].options.find(o => o.id === r.optionId)?.text || 'N/A',
+          xpEarned: r.xpEarned,
+          timeTakenSeconds: r.timeTakenSeconds,
+          timestamp: Date.now()
+        }))} playerName={user?.displayName || 'Guest Player'} />
+
+        <div style={{ marginTop: '3rem' }}>
+          {/* Restart Button */}
+          <button
+            onClick={onRestart}
           style={{
             padding: '1rem 2rem',
             background: 'var(--gold)',

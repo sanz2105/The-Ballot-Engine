@@ -6,6 +6,7 @@ import BadgeNotification from '../components/BadgeNotification'
 import { PHASES } from '../data/phases'
 import { BADGES } from '../data/badges'
 import { getLevelForXP, getNextLevel, getXPProgress } from '../data/levels'
+import { useTranslation } from '../services/translateService'
 
 export default function GameScreen({ engine }) {
   const {
@@ -21,7 +22,24 @@ export default function GameScreen({ engine }) {
     newBadgeNotification,
     selectOption,
     advancePhase,
+    requestHint,
+    hintText,
+    isHintLoading,
+    currentPhaseHintUsed,
   } = engine
+
+  const { t, language, registerStrings } = useTranslation()
+
+  useEffect(() => {
+    if (language !== 'en') {
+      const strings = [
+        currentPhase.title,
+        currentPhase.scenario,
+        ...currentPhase.options.map(o => o.text)
+      ]
+      registerStrings(strings)
+    }
+  }, [currentPhase, language, registerStrings])
 
   const currentLevel = getLevelForXP(xp)
   const nextLevel = getNextLevel(xp)
@@ -76,7 +94,7 @@ export default function GameScreen({ engine }) {
                 textTransform: 'uppercase',
               }}
             >
-              Phases
+              {t('Phases')}
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               {PHASES.map((phase, idx) => {
@@ -137,7 +155,7 @@ export default function GameScreen({ engine }) {
                 textTransform: 'uppercase',
               }}
             >
-              Badges
+              {t('Badges')}
             </h3>
             <div
               style={{
@@ -198,7 +216,7 @@ export default function GameScreen({ engine }) {
                 marginBottom: '0.5rem',
               }}
             >
-              PHASE {currentPhase.number} / 08
+              {t('PHASE')} {currentPhase.number} / 08
             </div>
             <h2
               style={{
@@ -209,7 +227,7 @@ export default function GameScreen({ engine }) {
                 margin: '0.5rem 0 0 0',
               }}
             >
-              {currentPhase.title}
+              {t(currentPhase.title)}
             </h2>
             <p
               style={{
@@ -218,7 +236,7 @@ export default function GameScreen({ engine }) {
                 marginTop: '0.5rem',
               }}
             >
-              {8 - currentPhaseNumber} phases remaining
+              {8 - currentPhaseNumber} {t('phases remaining')}
             </p>
           </div>
 
@@ -240,7 +258,7 @@ export default function GameScreen({ engine }) {
                 marginBottom: '1rem',
               }}
             >
-              🗳️ Situation Report
+              🗳️ {t('Situation Report')}
             </div>
             <p
               style={{
@@ -250,7 +268,7 @@ export default function GameScreen({ engine }) {
                 margin: 0,
               }}
             >
-              {currentPhase.scenario}
+              {t(currentPhase.scenario)}
             </p>
           </div>
 
@@ -273,6 +291,52 @@ export default function GameScreen({ engine }) {
                   />
                 </div>
               ))}
+
+              {/* Hint Section */}
+              <div style={{ marginTop: '0.5rem' }}>
+                {!currentPhaseHintUsed ? (
+                  <button
+                    onClick={requestHint}
+                    disabled={engine.xp < 15}
+                    style={{
+                      background: 'none',
+                      border: '1px solid var(--border-subtle)',
+                      color: 'var(--text-secondary)',
+                      padding: '0.4rem 0.8rem',
+                      borderRadius: '4px',
+                      fontSize: '0.8rem',
+                      cursor: engine.xp < 15 ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                      opacity: engine.xp < 15 ? 0.5 : 1,
+                    }}
+                  >
+                    💡 {t('Hint')} <span style={{ fontSize: '0.7rem', opacity: 0.7 }}>(-15 XP)</span>
+                  </button>
+                ) : (
+                  <div
+                    className="anim-fadeup"
+                    style={{
+                      padding: '1rem',
+                      background: 'rgba(245, 200, 66, 0.05)',
+                      borderLeft: '2px solid var(--gold)',
+                      fontSize: '0.9rem',
+                      fontStyle: 'italic',
+                      color: 'var(--gold)',
+                    }}
+                  >
+                    {isHintLoading ? (
+                      <span className="anim-pulse">{t('Thinking...')}</span>
+                    ) : (
+                      <>
+                        <span style={{ fontWeight: 700, marginRight: '0.5rem' }}>HINT:</span>
+                        {t(hintText)}
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           ) : (
             <>

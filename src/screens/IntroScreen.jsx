@@ -1,4 +1,9 @@
+import React from 'react'
+import LanguageSelector from '../components/LanguageSelector'
+import { useTranslation } from '../services/translateService'
+
 export default function IntroScreen({ onStart, user, onSignIn, onSignOut }) {
+  const { t } = useTranslation()
   return (
     <div
       style={{
@@ -13,6 +18,10 @@ export default function IntroScreen({ onStart, user, onSignIn, onSignOut }) {
         padding: '2rem',
       }}
     >
+      <div style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', zIndex: 10 }}>
+        <LanguageSelector />
+      </div>
+
       {/* Radial glow background */}
       <div
         style={{
@@ -59,7 +68,7 @@ export default function IntroScreen({ onStart, user, onSignIn, onSignOut }) {
             textTransform: 'uppercase',
           }}
         >
-          Anthro Challenge · Election Education
+          {t('Anthro Challenge · Election Education')}
         </div>
 
         {/* Title */}
@@ -74,7 +83,7 @@ export default function IntroScreen({ onStart, user, onSignIn, onSignOut }) {
             lineHeight: 1.1,
           }}
         >
-          THE BALLOT ENGINE
+          {t('THE BALLOT ENGINE')}
         </h1>
 
         {/* Divider */}
@@ -96,7 +105,7 @@ export default function IntroScreen({ onStart, user, onSignIn, onSignOut }) {
             marginBottom: '2.5rem',
           }}
         >
-          You are Verdania's newly appointed Chief Election Commissioner. Eight high-stakes rulings stand between chaos and democracy.
+          {t("You are Verdania's newly appointed Chief Election Commissioner. Eight high-stakes rulings stand between chaos and democracy.")}
         </p>
 
         {/* Stats row */}
@@ -110,10 +119,10 @@ export default function IntroScreen({ onStart, user, onSignIn, onSignOut }) {
           }}
         >
           {[
-            { label: 'Phases', value: '8' },
-            { label: 'Max Points', value: '24' },
-            { label: 'Badges', value: '8' },
-            { label: 'Ranks', value: '6' },
+            { label: t('Phases'), value: '8' },
+            { label: t('Max Points'), value: '24' },
+            { label: t('Badges'), value: '8' },
+            { label: t('Ranks'), value: '6' },
           ].map((stat) => (
             <div key={stat.label} style={{ textAlign: 'center' }}>
               <div
@@ -247,7 +256,7 @@ export default function IntroScreen({ onStart, user, onSignIn, onSignOut }) {
             e.target.style.boxShadow = '0 0 20px rgba(245, 200, 66, 0.2)'
           }}
         >
-          Begin Election →
+          {t('Begin Election')} →
         </button>
 
         {/* Footer */}

@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { PHASES } from '../data/phases'
 import { BADGES } from '../data/badges'
-import { getNarratorFeedback } from '../lib/gemini'
+import { getNarratorFeedback, getHintText } from '../services/geminiService'
 import { trackBadgeUnlocked, trackPhaseComplete, trackGameComplete, trackGameStarted } from '../lib/firebase'
 
 export const calculateGrade = (points, maxPoints) => {
@@ -30,6 +30,10 @@ export const useGameEngine = () => {
   const [isNarrationLoading, setIsNarrationLoading] = useState(false)
   const [newBadgeNotification, setNewBadgeNotification] = useState(null)
   const [xpPopup, setXpPopup] = useState(null)
+  const [hintText, setHintText] = useState('')
+  const [isHintLoading, setIsHintLoading] = useState(false)
+  const [hintsUsedTotal, setHintsUsedTotal] = useState(0)
+  const [currentPhaseHintUsed, setCurrentPhaseHintUsed] = useState(false)
   const [gameScreen, setGameScreen] = useState('intro')
 
   const phaseStartTimeRef = useRef(null)
@@ -156,6 +160,24 @@ export const useGameEngine = () => {
     [stage, phaseIndex, combo, maxCombo, phasesCompleted, perfectPhases, fastCorrectAnswers, checkBadges]
   )
 
+  const requestHint = useCallback(async () => {
+    if (stage !== 'question' || currentPhaseHintUsed || xp < 15) return
+
+    setIsHintLoading(true)
+    setXp((prev) => prev - 15)
+    setCurrentPhaseHintUsed(true)
+    setHintsUsedTotal((prev) => prev + 1)
+
+    try {
+      const hint = await getHintText(currentPhase, currentPhase.options)
+      setHintText(hint)
+    } catch (error) {
+      console.error('Hint error:', error)
+    } finally {
+      setIsHintLoading(false)
+    }
+  }, [stage, currentPhaseHintUsed, xp, currentPhase])
+
   const advancePhase = useCallback(() => {
     if (phaseIndex >= PHASES.length - 1) {
       const totalPoints = phaseResults.reduce((sum, r) => sum + r.points, 0)
@@ -169,6 +191,8 @@ export const useGameEngine = () => {
       setStage('question')
       setChosenOptionId(null)
       setNarration('')
+      setHintText('')
+      setCurrentPhaseHintUsed(false)
       phaseStartTimeRef.current = Date.now()
     }
   }, [phaseIndex, xp, phaseResults, unlockedBadges.length])
@@ -191,6 +215,10 @@ export const useGameEngine = () => {
     setIsNarrationLoading(false)
     setNewBadgeNotification(null)
     setXpPopup(null)
+    setHintText('')
+    setIsHintLoading(false)
+    setHintsUsedTotal(0)
+    setCurrentPhaseHintUsed(false)
     phaseStartTimeRef.current = Date.now()
   }, [])
 
@@ -229,7 +257,12 @@ export const useGameEngine = () => {
     currentPhase,
     startGame,
     selectOption,
+    requestHint,
     advancePhase,
     resetGame,
+    hintText,
+    isHintLoading,
+    currentPhaseHintUsed,
+    hintsUsedTotal,
   }
 }

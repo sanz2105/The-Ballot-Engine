@@ -20,8 +20,6 @@ const app = isConfigured ? initializeApp(firebaseConfig) : null
 export const auth = isConfigured ? getAuth(app) : null
 export const db = isConfigured ? getFirestore(app) : null
 export const analytics = isConfigured && typeof window !== 'undefined' ? getAnalytics(app) : null
-
-// Firebase Performance Monitoring — measures real-world latency
 export const perf = isConfigured && typeof window !== 'undefined' ? getPerformance(app) : null
 
 const provider = isConfigured ? new GoogleAuthProvider() : null
@@ -84,11 +82,36 @@ export const trackGameStarted = (isAuthenticated) => {
   trackEvent('be_game_started', { is_authenticated: isAuthenticated })
 }
 
+// Advanced Analytics Helpers
+export const logPhaseCompleted = (phase_number, score, xp_earned, time_taken_seconds) => {
+  if (analytics) logEvent(analytics, 'phase_completed', { phase_number, score, xp_earned, time_taken_seconds })
+}
+
+export const logBadgeUnlocked = (badge_id, badge_name) => {
+  if (analytics) logEvent(analytics, 'badge_unlocked', { badge_id, badge_name })
+}
+
+export const logGameCompleted = (total_score, grade, total_xp, phases_perfect) => {
+  if (analytics) logEvent(analytics, 'game_completed', { total_score, grade, total_xp, phases_perfect })
+}
+
+export const logExportCalendar = (success) => {
+  if (analytics) logEvent(analytics, 'export_calendar', { success })
+}
+
+export const logExportSheets = (success) => {
+  if (analytics) logEvent(analytics, 'export_sheets', { success })
+}
+
+export const logLanguageChanged = (from_lang, to_lang) => {
+  if (analytics) logEvent(analytics, 'language_changed', { from_lang, to_lang })
+}
+
 /**
- * Create a Firebase Performance trace for measuring Gemini API latency.
- * Returns a trace object with .start() and .stop() methods, or a no-op if perf is unavailable.
+ * Create a Firebase Performance trace.
  */
 export const createPerfTrace = (traceName) => {
   if (!perf) return { start: () => {}, stop: () => {}, putAttribute: () => {}, putMetric: () => {} }
   return trace(perf, traceName)
 }
+
