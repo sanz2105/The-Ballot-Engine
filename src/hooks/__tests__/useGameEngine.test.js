@@ -10,6 +10,10 @@ vi.mock('../../lib/gemini', () => ({
 // Mock Firebase
 vi.mock('../../lib/firebase', () => ({
   trackEvent: vi.fn(),
+  trackBadgeUnlocked: vi.fn(),
+  trackPhaseComplete: vi.fn(),
+  trackGameComplete: vi.fn(),
+  trackGameStarted: vi.fn(),
 }))
 
 describe('useGameEngine', () => {

@@ -1,4 +1,6 @@
-export default function OptionButton({ option, isChosen, stage, onSelect }) {
+import React from 'react'
+
+export default React.memo(function OptionButton({ option, isChosen, stage, onSelect }) {
   let buttonClass = 'option-btn'
 
   if (stage === 'feedback') {
@@ -59,3 +61,4 @@ export default function OptionButton({ option, isChosen, stage, onSelect }) {
     </button>
   )
 }
+})

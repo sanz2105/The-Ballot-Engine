@@ -10,6 +10,7 @@ export default function XPPopup({ popup }) {
   return (
     <div
       className="anim-floatup"
+      aria-hidden="true"
       style={{
         position: 'fixed',
         top: '50%',

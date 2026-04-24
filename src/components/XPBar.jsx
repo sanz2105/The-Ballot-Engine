@@ -1,4 +1,6 @@
-export default function XPBar({ xp, currentLevel, nextLevel, xpPercent, combo }) {
+import React from 'react'
+
+export default React.memo(function XPBar({ xp, currentLevel, nextLevel, xpPercent, combo }) {
   return (
     <header
       className="xp-bar"
@@ -106,4 +108,4 @@ export default function XPBar({ xp, currentLevel, nextLevel, xpPercent, combo })
       )}
     </header>
   )
-}
+})

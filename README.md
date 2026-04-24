@@ -17,8 +17,10 @@ The assistant is "smart" in two ways:
 3. Each phase presents a real-world electoral scenario with 4 choices
 4. After selection, Gemini 2.5 Flash analyses the decision and provides educational feedback
 5. XP, combo multipliers, and badges reward good decision-making
-6. On completion, scores are saved to a Firestore leaderboard
+6. On completion, scores are saved to a secure Firestore leaderboard
 7. Users can view their global rank against other players
+8. **Security first**: Enforced with Firestore rules, CSP headers, and input sanitisation
+9. **Efficiency**: Gemini response caching, rate limiting, and component memoization for smooth 60fps UI
 
 ### Google Services Used
 | Service | Usage |
@@ -27,7 +29,9 @@ The assistant is "smart" in two ways:
 | **Firebase Auth** | Google Sign-In for leaderboard participation |
 | **Firestore** | Persistent global leaderboard, best-score tracking |
 | **Google Analytics 4** | Phase funnel analysis, badge unlock tracking, game completion events |
-| **Firebase Hosting** | Production deployment |
+| **Firebase Hosting** | Production deployment with custom HTTP security headers (CSP, HSTS, XSS protection) |
+| **Firebase Perf** | Real-time latency tracking for Gemini AI narration and score submission |
+| **Firestore Rules** | Production-grade security rules restricting leaderboard writes to authenticated owners |
 
 ### Assumptions
 - Verdania is entirely fictional; all electoral scenarios are grounded in IAEA and UN electoral guidelines

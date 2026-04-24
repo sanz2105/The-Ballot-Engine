@@ -4,6 +4,7 @@ import { BADGES } from '../data/badges'
 import { getLevelForXP } from '../data/levels'
 import { calculateGrade } from '../hooks/useGameEngine'
 import { submitScore, getTopScores, getUserRank } from '../services/leaderboard'
+import { createPerfTrace, trackEvent } from '../lib/firebase'
 
 export default function ResultsScreen({ phaseResults, xp, unlockedBadges, user, onRestart }) {
   const [leaderboard, setLeaderboard] = useState([])
@@ -12,6 +13,9 @@ export default function ResultsScreen({ phaseResults, xp, unlockedBadges, user, 
   useEffect(() => {
     const submitAndFetch = async () => {
       if (user) {
+        const perfTrace = createPerfTrace('score_submission_latency')
+        perfTrace.start()
+
         const totalPoints = phaseResults.reduce((sum, r) => sum + r.points, 0)
         const { grade } = calculateGrade(totalPoints, PHASES.length * 3)
 
@@ -28,6 +32,11 @@ export default function ResultsScreen({ phaseResults, xp, unlockedBadges, user, 
 
         const rank = await getUserRank(user.uid)
         setUserRank(rank)
+
+        perfTrace.putAttribute('grade', grade)
+        perfTrace.stop()
+        
+        trackEvent('be_results_viewed', { final_xp: xp, final_grade: grade })
       }
     }
 
