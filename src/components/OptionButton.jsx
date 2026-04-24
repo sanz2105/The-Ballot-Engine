@@ -60,5 +60,4 @@ export default React.memo(function OptionButton({ option, isChosen, stage, onSel
       </span>
     </button>
   )
-}
 })
