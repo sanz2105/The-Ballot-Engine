@@ -1,0 +1,58 @@
+export const BADGES = [
+  {
+    id: 'first-ballot',
+    icon: '🎯',
+    name: 'First Ballot',
+    description: 'Complete your first phase',
+    check: (stats) => stats.phasesCompleted >= 1,
+  },
+  {
+    id: 'clean-sweep',
+    icon: '✨',
+    name: 'Clean Sweep',
+    description: 'Score perfect 3/3 on any phase',
+    check: (stats) => stats.perfectPhases >= 1,
+  },
+  {
+    id: 'lightning-rod',
+    icon: '⚡',
+    name: 'Lightning Rod',
+    description: 'Answer correctly in under 5 seconds',
+    check: (stats) => stats.fastCorrectAnswers >= 1,
+  },
+  {
+    id: 'on-fire',
+    icon: '🔥',
+    name: 'On Fire',
+    description: '3 correct answers in a row',
+    check: (stats) => stats.maxCombo >= 3,
+  },
+  {
+    id: 'halfway',
+    icon: '🗺️',
+    name: 'Halfway There',
+    description: 'Complete 4 phases',
+    check: (stats) => stats.phasesCompleted >= 4,
+  },
+  {
+    id: 'full-cycle',
+    icon: '🏛️',
+    name: 'Full Cycle',
+    description: 'Complete all 8 phases',
+    check: (stats) => stats.phasesCompleted >= 8,
+  },
+  {
+    id: 'democracy-expert',
+    icon: '👑',
+    name: 'Democracy Expert',
+    description: 'Perfect score on all 8 phases',
+    check: (stats) => stats.perfectPhases >= 8,
+  },
+  {
+    id: 'unstoppable',
+    icon: '💥',
+    name: 'Unstoppable',
+    description: '5 correct answers in a row',
+    check: (stats) => stats.maxCombo >= 5,
+  },
+]
