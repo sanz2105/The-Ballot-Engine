@@ -18,8 +18,8 @@ export default React.memo(function OptionButton({ option, isChosen, stage, onSel
       className={buttonClass}
       disabled={stage === 'feedback'}
       onClick={() => onSelect(option)}
-      aria-pressed={stage === 'feedback' ? isChosen : undefined}
-      aria-label={`Option ${option.id.toUpperCase()}: ${option.text}`}
+      aria-label={`Option ${option.id.toUpperCase()}: ${option.text}${stage === 'feedback' ? (option.isCorrect ? ' - Correct' : (isChosen ? ' - Incorrect' : '')) : ''}`}
+      aria-disabled={stage === 'feedback'}
     >
       {/* Letter Badge */}
       <div

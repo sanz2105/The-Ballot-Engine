@@ -96,7 +96,14 @@ export const useGameEngine = () => {
 
       setPhaseResults((prev) => [
         ...prev,
-        { phaseId: currentPhase.id, optionId: option.id, points: option.points, xpEarned: earnedXP },
+        { 
+          phaseId: currentPhase.id, 
+          optionId: option.id, 
+          points: option.points, 
+          xpEarned: earnedXP, 
+          timestamp: Date.now(),
+          timeTaken: timeTaken
+        },
       ])
 
       setTimeline((prev) => [

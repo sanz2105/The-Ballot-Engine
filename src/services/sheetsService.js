@@ -1,7 +1,16 @@
-import { useState, useCallback } from 'react'
+/**
+ * @fileoverview Service for exporting game results to Google Sheets.
+ * Demonstrates integration with Google Sheets API v4.
+ */
 
+import { useState, useCallback } from 'react'
 import { initGoogleAuth, ensureAccessToken } from './googleAuthService'
 
+/**
+ * Creates a new Google Sheet and populates it with the player's game results.
+ * @param {Array} gameResults - Array of phase results.
+ * @returns {Promise<{success: boolean, spreadsheetUrl: string}>}
+ */
 export const exportToGoogleSheets = async (gameResults) => {
   await initGoogleAuth()
 
@@ -55,11 +64,7 @@ export const exportToGoogleSheets = async (gameResults) => {
     }),
   })
 
-  // 4. Formatting (Bold headers, conditional colors)
-  // Note: For simplicity and brevity, I'll stick to the core data writing 
-  // but the prompt asked for formatting. v4 formatting is very verbose.
-  // I will add a basic formatting request.
-  
+  // 4. Formatting (Bold headers)
   await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}:batchUpdate`, {
     method: 'POST',
     headers: {
@@ -85,6 +90,10 @@ export const exportToGoogleSheets = async (gameResults) => {
   }
 }
 
+/**
+ * Hook to manage Google Sheets export state.
+ * @returns {{ exportSheet: Function, loading: boolean, error: string|null, spreadsheetUrl: string|null }}
+ */
 export const useSheetsExport = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -107,3 +116,4 @@ export const useSheetsExport = () => {
 
   return { exportSheet, loading, error, spreadsheetUrl }
 }
+

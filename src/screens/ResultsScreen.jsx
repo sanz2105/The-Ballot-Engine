@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { PHASES } from '../data/phases'
 import { BADGES } from '../data/badges'
 import { getLevelForXP } from '../data/levels'
@@ -7,18 +7,26 @@ import { submitScore, getTopScores, getUserRank } from '../services/leaderboard'
 import { createPerfTrace, trackEvent } from '../lib/firebase'
 import LanguageSelector from '../components/LanguageSelector'
 import ExportPanel from '../components/ExportPanel'
-import { useTranslation } from '../services/translateService'
+import { useTranslation } from '../context/TranslationContext'
+import { useGeminiNarrator } from '../services/geminiService'
 
 export default function ResultsScreen({ phaseResults, xp, unlockedBadges, user, onRestart }) {
   const [leaderboard, setLeaderboard] = useState([])
   const [userRank, setUserRank] = useState(null)
   const { t, language, registerStrings } = useTranslation()
+  const { fetchReview, review, loading: reviewLoading } = useGeminiNarrator()
 
   useEffect(() => {
-    if (language !== 'en') {
+    if (language !== 'en' && registerStrings) {
       const strings = [
         'Verdania Election — Complete',
         'THE BALLOT ENGINE',
+        'AI Performance Review',
+        'Analysing your civic leadership...',
+        'Phase Results',
+        'Badges Earned',
+        'Global Leaderboard',
+        'Your Rank',
         ...phaseResults.map((r, i) => PHASES[i].title),
         ...phaseResults.map((r, i) => PHASES[i].options.find(o => o.id === r.optionId)?.text || '')
       ].filter(Boolean)
@@ -54,10 +62,13 @@ export default function ResultsScreen({ phaseResults, xp, unlockedBadges, user, 
         
         trackEvent('be_results_viewed', { final_xp: xp, final_grade: grade })
       }
+      
+      // Fetch AI Review
+      fetchReview(phaseResults, xp)
     }
 
     submitAndFetch()
-  }, [user, xp, phaseResults, unlockedBadges])
+  }, [user, xp, phaseResults, unlockedBadges, fetchReview])
 
   const totalPoints = phaseResults.reduce((sum, r) => sum + r.points, 0)
   const maxPoints = PHASES.length * 3
@@ -65,6 +76,15 @@ export default function ResultsScreen({ phaseResults, xp, unlockedBadges, user, 
   const level = getLevelForXP(xp)
 
   const unlockedBadgeObjects = BADGES.filter((b) => unlockedBadges.includes(b.id))
+
+  const exportData = useMemo(() => phaseResults.map((r, i) => ({
+    ...r,
+    title: PHASES[i].title,
+    decision: PHASES[i].options.find(o => o.id === r.optionId)?.text || 'N/A',
+    xpEarned: r.xpEarned,
+    timeTakenSeconds: r.timeTaken || 0,
+    timestamp: r.timestamp || 0
+  })), [phaseResults])
 
   return (
     <div
@@ -119,12 +139,14 @@ export default function ResultsScreen({ phaseResults, xp, unlockedBadges, user, 
             padding: '2rem',
             background: 'var(--bg-card)',
             borderRadius: '8px',
+            width: '100%',
+            maxWidth: '600px',
           }}
         >
           {[
-            { label: 'Grade', value: grade, color },
-            { label: 'Total XP', value: xp },
-            { label: 'Points', value: `${totalPoints}/${maxPoints}` },
+            { label: t('Grade'), value: grade, color },
+            { label: t('Total XP'), value: xp },
+            { label: t('Points'), value: `${totalPoints}/${maxPoints}` },
           ].map((stat) => (
             <div key={stat.label} style={{ textAlign: 'center' }}>
               <div
@@ -150,14 +172,67 @@ export default function ResultsScreen({ phaseResults, xp, unlockedBadges, user, 
           ))}
         </div>
 
+        {/* AI Performance Review Section */}
+        <div
+          style={{
+            width: '100%',
+            maxWidth: '600px',
+            padding: '1.5rem',
+            background: 'var(--bg-card)',
+            borderRadius: '8px',
+            border: '1px solid var(--indigo)',
+            marginBottom: '2rem',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '4px',
+              height: '100%',
+              background: 'linear-gradient(to bottom, var(--indigo), var(--purple))',
+            }}
+          />
+          <h3
+            style={{
+              fontSize: '0.85rem',
+              fontWeight: 700,
+              color: 'var(--indigo)',
+              letterSpacing: '0.1em',
+              marginBottom: '1rem',
+              textTransform: 'uppercase',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+            }}
+          >
+            🤖 {t('AI Performance Review')}
+          </h3>
+          {reviewLoading ? (
+            <p style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }} className="anim-pulse">
+              {t('Analysing your civic leadership...')}
+            </p>
+          ) : (
+            <p style={{ color: 'var(--text-primary)', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' }}>
+              {t(review)}
+            </p>
+          )}
+        </div>
+
         {/* Final Rank Card */}
         <div
           style={{
+            width: '100%',
+            maxWidth: '600px',
             padding: '1.5rem',
             background: 'var(--bg-card)',
             borderRadius: '8px',
             border: '1px solid var(--border-subtle)',
             marginBottom: '2rem',
+            textAlign: 'center',
           }}
         >
           <div
@@ -168,13 +243,15 @@ export default function ResultsScreen({ phaseResults, xp, unlockedBadges, user, 
               color: level.color,
             }}
           >
-            {level.title}
+            {t(level.title)}
           </div>
         </div>
 
         {/* Phase Breakdown */}
         <div
           style={{
+            width: '100%',
+            maxWidth: '600px',
             padding: '1.5rem',
             background: 'var(--bg-card)',
             borderRadius: '8px',
@@ -190,7 +267,7 @@ export default function ResultsScreen({ phaseResults, xp, unlockedBadges, user, 
               color: 'var(--text-primary)',
             }}
           >
-            Phase Results
+            {t('Phase Results')}
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {PHASES.map((phase, idx) => {
@@ -221,7 +298,7 @@ export default function ResultsScreen({ phaseResults, xp, unlockedBadges, user, 
                     borderRadius: '4px',
                   }}
                 >
-                  <span style={{ fontSize: '0.9rem' }}>{phase.title}</span>
+                  <span style={{ fontSize: '0.9rem' }}>{t(phase.title)}</span>
                   <span
                     style={{
                       fontWeight: 600,
@@ -240,6 +317,8 @@ export default function ResultsScreen({ phaseResults, xp, unlockedBadges, user, 
         {unlockedBadgeObjects.length > 0 && (
           <div
             style={{
+              width: '100%',
+              maxWidth: '600px',
               padding: '1.5rem',
               background: 'var(--bg-card)',
               borderRadius: '8px',
@@ -254,7 +333,7 @@ export default function ResultsScreen({ phaseResults, xp, unlockedBadges, user, 
                 color: 'var(--text-primary)',
               }}
             >
-              Badges Earned
+              {t('Badges Earned')}
             </h3>
             <div
               style={{
@@ -275,7 +354,7 @@ export default function ResultsScreen({ phaseResults, xp, unlockedBadges, user, 
                       color: 'var(--text-primary)',
                     }}
                   >
-                    {badge.name}
+                    {t(badge.name)}
                   </div>
                 </div>
               ))}
@@ -288,6 +367,7 @@ export default function ResultsScreen({ phaseResults, xp, unlockedBadges, user, 
           <div
             style={{
               width: '100%',
+              maxWidth: '600px',
               padding: '1.5rem',
               background: 'var(--bg-card)',
               borderRadius: '8px',
@@ -302,7 +382,7 @@ export default function ResultsScreen({ phaseResults, xp, unlockedBadges, user, 
                 color: 'var(--text-primary)',
               }}
             >
-              Global Leaderboard
+              {t('Global Leaderboard')}
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               {leaderboard.map((entry) => {
@@ -376,21 +456,13 @@ export default function ResultsScreen({ phaseResults, xp, unlockedBadges, user, 
                   fontWeight: 600,
                 }}
               >
-                Your Rank: #{userRank}
+                {t('Your Rank')}: #{userRank}
               </div>
             )}
           </div>
         )}
 
-        <ExportPanel gameResults={phaseResults.map((r, i) => ({
-          ...r,
-          title: PHASES[i].title,
-          decision: PHASES[i].options.find(o => o.id === r.optionId)?.text || 'N/A',
-          xpEarned: r.xpEarned,
-          timeTakenSeconds: r.timeTakenSeconds,
-          // eslint-disable-next-line react-hooks/purity
-          timestamp: Date.now()
-        }))} playerName={user?.displayName || 'Guest Player'} />
+        <ExportPanel gameResults={exportData} playerName={user?.displayName || 'Guest Player'} />
 
         <div style={{ marginTop: '3rem' }}>
           {/* Restart Button */}
@@ -408,15 +480,22 @@ export default function ResultsScreen({ phaseResults, xp, unlockedBadges, user, 
             transition: 'all 0.2s ease',
           }}
           onMouseOver={(e) => {
-            e.target.style.transform = 'scale(1.05)'
+            if (e.target.style) e.target.style.transform = 'scale(1.05)'
           }}
           onMouseOut={(e) => {
-            e.target.style.transform = 'scale(1)'
+            if (e.target.style) e.target.style.transform = 'scale(1)'
+          }}
+          onFocus={(e) => {
+            if (e.target.style) e.target.style.transform = 'scale(1.05)'
+          }}
+          onBlur={(e) => {
+            if (e.target.style) e.target.style.transform = 'scale(1)'
           }}
         >
-          Run Another Election
+          {t('Run Another Election')}
         </button>
       </div>
     </div>
   )
 }
+

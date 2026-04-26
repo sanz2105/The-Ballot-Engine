@@ -1,5 +1,5 @@
 import LanguageSelector from '../components/LanguageSelector'
-import { useTranslation } from '../services/translateService'
+import { useTranslation } from '../context/TranslationContext'
 
 export default function IntroScreen({ onStart, user, onSignIn, onSignOut }) {
   const { t } = useTranslation()
@@ -194,66 +194,104 @@ export default function IntroScreen({ onStart, user, onSignIn, onSignOut }) {
                 fontSize: '0.85rem',
                 transition: 'all 0.2s ease',
               }}
-              onMouseOver={(e) => {
+            onMouseOver={(e) => {
+              if (e.target.style) {
                 e.target.style.borderColor = 'var(--gold)'
                 e.target.style.background = 'rgba(245, 200, 66, 0.06)'
-              }}
-              onMouseOut={(e) => {
-                e.target.style.borderColor = 'var(--border-subtle)'
-                e.target.style.background = 'var(--bg-card)'
-              }}
-            >
-              Sign Out
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={onSignIn}
-            style={{
-              padding: '0.75rem 1.5rem',
-              background: 'rgba(245, 200, 66, 0.15)',
-              border: '1px solid var(--border-gold)',
-              color: 'var(--text-primary)',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '0.9rem',
-              marginBottom: '2rem',
-              transition: 'all 0.2s ease',
-            }}
-            onMouseOver={(e) => {
-              e.target.style.background = 'rgba(245, 200, 66, 0.25)'
+              }
             }}
             onMouseOut={(e) => {
-              e.target.style.background = 'rgba(245, 200, 66, 0.15)'
+              if (e.target.style) {
+                e.target.style.borderColor = 'var(--border-subtle)'
+                e.target.style.background = 'var(--bg-card)'
+              }
+            }}
+            onFocus={(e) => {
+              if (e.target.style) {
+                e.target.style.borderColor = 'var(--gold)'
+                e.target.style.background = 'rgba(245, 200, 66, 0.06)'
+              }
+            }}
+            onBlur={(e) => {
+              if (e.target.style) {
+                e.target.style.borderColor = 'var(--border-subtle)'
+                e.target.style.background = 'var(--bg-card)'
+              }
             }}
           >
-            Sign in with Google
+            Sign Out
           </button>
-        )}
-
-        {/* CTA Button */}
+        </div>
+      ) : (
         <button
-          onClick={onStart}
+          onClick={onSignIn}
           style={{
-            padding: '1rem 2rem',
-            background: 'var(--gold)',
-            border: 'none',
-            color: 'var(--bg-dark)',
-            borderRadius: '6px',
-            fontSize: '1.1rem',
-            fontWeight: 700,
+            padding: '0.75rem 1.5rem',
+            background: 'rgba(245, 200, 66, 0.15)',
+            border: '1px solid var(--border-gold)',
+            color: 'var(--text-primary)',
+            borderRadius: '4px',
             cursor: 'pointer',
+            fontSize: '0.9rem',
+            marginBottom: '2rem',
             transition: 'all 0.2s ease',
-            boxShadow: '0 0 20px rgba(245, 200, 66, 0.2)',
           }}
           onMouseOver={(e) => {
-            e.target.style.transform = 'scale(1.05)'
-            e.target.style.boxShadow = '0 0 40px rgba(245, 200, 66, 0.4)'
+            if (e.target.style) e.target.style.background = 'rgba(245, 200, 66, 0.25)'
           }}
           onMouseOut={(e) => {
+            if (e.target.style) e.target.style.background = 'rgba(245, 200, 66, 0.15)'
+          }}
+          onFocus={(e) => {
+            if (e.target.style) e.target.style.background = 'rgba(245, 200, 66, 0.25)'
+          }}
+          onBlur={(e) => {
+            if (e.target.style) e.target.style.background = 'rgba(245, 200, 66, 0.15)'
+          }}
+        >
+          Sign in with Google
+        </button>
+      )}
+
+      {/* CTA Button */}
+      <button
+        onClick={onStart}
+        style={{
+          padding: '1rem 2rem',
+          background: 'var(--gold)',
+          border: 'none',
+          color: 'var(--bg-dark)',
+          borderRadius: '6px',
+          fontSize: '1.1rem',
+          fontWeight: 700,
+          cursor: 'pointer',
+          transition: 'all 0.2s ease',
+          boxShadow: '0 0 20px rgba(245, 200, 66, 0.2)',
+        }}
+        onMouseOver={(e) => {
+          if (e.target.style) {
+            e.target.style.transform = 'scale(1.05)'
+            e.target.style.boxShadow = '0 0 40px rgba(245, 200, 66, 0.4)'
+          }
+        }}
+        onMouseOut={(e) => {
+          if (e.target.style) {
             e.target.style.transform = 'scale(1)'
             e.target.style.boxShadow = '0 0 20px rgba(245, 200, 66, 0.2)'
-          }}
+          }
+        }}
+        onFocus={(e) => {
+          if (e.target.style) {
+            e.target.style.transform = 'scale(1.05)'
+            e.target.style.boxShadow = '0 0 40px rgba(245, 200, 66, 0.4)'
+          }
+        }}
+        onBlur={(e) => {
+          if (e.target.style) {
+            e.target.style.transform = 'scale(1)'
+            e.target.style.boxShadow = '0 0 20px rgba(245, 200, 66, 0.2)'
+          }
+        }}
         >
           {t('Begin Election')} →
         </button>

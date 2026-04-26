@@ -1,26 +1,32 @@
 /**
- * Translation service powered by Gemini API.
- * Uses the existing VITE_GEMINI_API_KEY — no additional API key or billing needed.
- * Supports: English, Hindi, French, Spanish, Arabic
- * @module translateService
+ * @fileoverview Translation service logic powered by Gemini API.
+ * Handles single-string translation and cache management.
  */
 
-import { useState, useCallback } from 'react'
-
-const SUPPORTED_LANGUAGES = {
-  en: { name: 'English', flag: '🇬🇧', nativeName: 'English' },
-  hi: { name: 'Hindi', flag: '🇮🇳', nativeName: 'हिन्दी' },
-  fr: { name: 'French', flag: '🇫🇷', nativeName: 'Français' },
-  es: { name: 'Spanish', flag: '🇪🇸', nativeName: 'Español' },
-  ar: { name: 'Arabic', flag: '🇸🇦', nativeName: 'العربية' },
+/**
+ * Supported languages and their metadata.
+ */
+export const SUPPORTED_LANGUAGES = {
+  en: { name: 'English', nativeName: 'English' },
+  hi: { name: 'Hindi', nativeName: 'हिन्दी' },
+  fr: { name: 'French', nativeName: 'Français' },
+  es: { name: 'Spanish', nativeName: 'Español' },
+  ar: { name: 'Arabic', nativeName: 'العربية' },
 }
 
-export { SUPPORTED_LANGUAGES }
+/**
+ * In-memory cache for translations to avoid redundant API calls.
+ * @type {Map<string, string|Promise<string>>}
+ */
+export const translationCache = new Map()
 
-const translationCache = new Map()
-
-function getCacheKey(text, targetLang) {
-  // Simple hash for cache key
+/**
+ * Generates a consistent cache key for a given string and target language.
+ * @param {string} text - The original text.
+ * @param {string} targetLang - The ISO language code.
+ * @returns {string} The formatted cache key.
+ */
+export function getCacheKey(text, targetLang) {
   let hash = 0
   for (let i = 0; i < text.length; i++) {
     hash = ((hash << 5) - hash) + text.charCodeAt(i)
@@ -30,10 +36,10 @@ function getCacheKey(text, targetLang) {
 }
 
 /**
- * Translates text using Gemini API.
- * @param {string} text - Text to translate
- * @param {string} targetLang - Target language code (hi, fr, es, ar)
- * @returns {Promise<string>} Translated text
+ * Translates a single string using Gemini 2.0 Flash.
+ * @param {string} text - Text to translate.
+ * @param {string} targetLang - Target language code.
+ * @returns {Promise<string>} The translated text or original on failure.
  */
 export async function translateWithGemini(text, targetLang) {
   if (targetLang === 'en') return text
@@ -67,40 +73,8 @@ export async function translateWithGemini(text, targetLang) {
     const translated = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || text
     translationCache.set(cacheKey, translated)
     return translated
-  } catch {
-    console.warn('Translation failed, using original text')
+  } catch (error) {
+    console.warn('Translation failed, using original text:', error)
     return text
-  }
-}
-
-/**
- * React hook for managing UI language and translation.
- * @returns {{ language, setLanguage, translateText, isTranslating, supportedLanguages }}
- */
-export function useTranslation() {
-  const [language, setLanguageState] = useState('en')
-  const [isTranslating, setIsTranslating] = useState(false)
-
-  const setLanguage = useCallback(async (lang) => {
-    setLanguageState(lang)
-  }, [])
-
-  const translateText = useCallback(async (text) => {
-    if (language === 'en') return text
-    setIsTranslating(true)
-    try {
-      const result = await translateWithGemini(text, language)
-      return result
-    } finally {
-      setIsTranslating(false)
-    }
-  }, [language])
-
-  return {
-    language,
-    setLanguage,
-    translateText,
-    isTranslating,
-    supportedLanguages: SUPPORTED_LANGUAGES,
   }
 }

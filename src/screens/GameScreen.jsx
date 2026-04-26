@@ -7,7 +7,7 @@ import BadgeNotification from '../components/BadgeNotification'
 import { PHASES } from '../data/phases'
 import { BADGES } from '../data/badges'
 import { getLevelForXP, getNextLevel, getXPProgress } from '../data/levels'
-import { useTranslation } from '../services/translateService'
+import { useTranslation } from '../context/TranslationContext'
 
 export default function GameScreen({ engine }) {
   const {
@@ -32,7 +32,7 @@ export default function GameScreen({ engine }) {
   const { t, language, registerStrings } = useTranslation()
 
   useEffect(() => {
-    if (language !== 'en') {
+    if (language !== 'en' && registerStrings) {
       const strings = [
         currentPhase.title,
         currentPhase.scenario,
@@ -418,15 +418,27 @@ export default function GameScreen({ engine }) {
                   marginTop: '1rem',
                 }}
                 onMouseOver={(e) => {
-                  if (!isNarrationLoading) {
+                  if (!isNarrationLoading && e.target.style) {
                     e.target.style.transform = 'scale(1.05)'
                   }
                 }}
                 onMouseOut={(e) => {
-                  e.target.style.transform = 'scale(1)'
+                  if (e.target.style) {
+                    e.target.style.transform = 'scale(1)'
+                  }
+                }}
+                onFocus={(e) => {
+                  if (!isNarrationLoading && e.target.style) {
+                    e.target.style.transform = 'scale(1.05)'
+                  }
+                }}
+                onBlur={(e) => {
+                  if (e.target.style) {
+                    e.target.style.transform = 'scale(1)'
+                  }
                 }}
               >
-                {currentPhaseNumber === 8 ? 'See Final Results →' : `Advance to Phase ${currentPhaseNumber + 1} →`}
+                {currentPhaseNumber === 8 ? t('See Final Results →') : `${t('Advance to Phase')} ${currentPhaseNumber + 1} →`}
               </button>
             </>
           )}

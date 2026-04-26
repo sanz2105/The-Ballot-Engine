@@ -1,11 +1,11 @@
-import { useTranslation } from '../services/translateService'
+import { useTranslation } from '../context/TranslationContext'
 
 const LANGUAGES = [
-  { code: 'en', label: '🇬🇧 EN' },
-  { code: 'hi', label: '🇮🇳 HI' },
-  { code: 'fr', label: '🇫🇷 FR' },
-  { code: 'es', label: '🇪🇸 ES' },
-  { code: 'ar', label: '🇸🇦 AR' },
+  { code: 'en', label: 'EN' },
+  { code: 'hi', label: 'HI' },
+  { code: 'fr', label: 'FR' },
+  { code: 'es', label: 'ES' },
+  { code: 'ar', label: 'AR' },
 ]
 
 export default function LanguageSelector() {

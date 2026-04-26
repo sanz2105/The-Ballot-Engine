@@ -4,8 +4,13 @@ import IntroScreen from './screens/IntroScreen'
 import GameScreen from './screens/GameScreen'
 import ResultsScreen from './screens/ResultsScreen'
 import ErrorBoundary from './components/ErrorBoundary'
+import { initRemoteConfig } from './services/remoteConfigService'
+import { useEffect } from 'react'
 
 export default function App() {
+  useEffect(() => {
+    initRemoteConfig()
+  }, [])
   const engine = useGameEngine()
   const { user, signIn, signOut } = useAuth()
 

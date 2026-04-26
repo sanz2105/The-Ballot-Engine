@@ -3,7 +3,7 @@ import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/
 import { getFirestore } from 'firebase/firestore'
 import { getAnalytics, logEvent } from 'firebase/analytics'
 import { getPerformance, trace } from 'firebase/performance'
-
+import { getRemoteConfig } from 'firebase/remote-config'
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -21,6 +21,7 @@ export const auth = isConfigured ? getAuth(app) : null
 export const db = isConfigured ? getFirestore(app) : null
 export const analytics = isConfigured && typeof window !== 'undefined' ? getAnalytics(app) : null
 export const perf = isConfigured && typeof window !== 'undefined' ? getPerformance(app) : null
+export const remoteConfig = isConfigured && typeof window !== 'undefined' ? getRemoteConfig(app) : null
 
 const provider = isConfigured ? new GoogleAuthProvider() : null
 
