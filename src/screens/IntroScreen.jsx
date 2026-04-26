@@ -1,4 +1,3 @@
-import React from 'react'
 import LanguageSelector from '../components/LanguageSelector'
 import { useTranslation } from '../services/translateService'
 

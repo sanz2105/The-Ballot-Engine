@@ -1,18 +1,13 @@
 import { useState, useCallback } from 'react'
 
+import { ensureAccessToken, initGoogleAuth } from './googleAuthService'
+
 const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'
-const SCOPES = 'https://www.googleapis.com/auth/calendar.events'
-
 let gapiInited = false
-let gisInited = false
-let tokenClient
 
-/**
- * Loads the Google API and Identity Services scripts dynamically
- */
-const loadScripts = () => {
+const loadGapi = () => {
   return new Promise((resolve, reject) => {
-    if (gapiInited && gisInited) {
+    if (gapiInited) {
       resolve()
       return
     }
@@ -28,82 +23,49 @@ const loadScripts = () => {
           discoveryDocs: [DISCOVERY_DOC],
         })
         gapiInited = true
-        if (gisInited) resolve()
+        resolve()
       })
     }
     gapiScript.onerror = reject
     document.head.appendChild(gapiScript)
-
-    const gisScript = document.createElement('script')
-    gisScript.src = 'https://accounts.google.com/gsi/client'
-    gisScript.async = true
-    gisScript.defer = true
-    gisScript.onload = () => {
-      tokenClient = window.google.accounts.oauth2.initTokenClient({
-        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-        scope: SCOPES,
-        callback: '', // defined at call time
-      })
-      gisInited = true
-      if (gapiInited) resolve()
-    }
-    gisScript.onerror = reject
-    document.head.appendChild(gisScript)
   })
 }
 
 export const exportToGoogleCalendar = async (timelineResults, electionDay) => {
-  await loadScripts()
+  await Promise.all([loadGapi(), initGoogleAuth()])
 
-  return new Promise((resolve, reject) => {
-    tokenClient.callback = async (resp) => {
-      if (resp.error !== undefined) {
-        reject(resp)
-        return
-      }
+  const accessToken = await ensureAccessToken()
+  window.gapi.client.setToken({ access_token: accessToken })
+  const events = timelineResults.map((res, index) => {
+    // Calculate date relative to election day (e.g., 1 phase per day leading up to it)
+    const eventDate = new Date(electionDay)
+    eventDate.setDate(eventDate.getDate() - (7 - index))
 
-      try {
-        const events = timelineResults.map((res, index) => {
-          // Calculate date relative to election day (e.g., 1 phase per day leading up to it)
-          const eventDate = new Date(electionDay)
-          eventDate.setDate(eventDate.getDate() - (7 - index))
+    let colorId = '11' // Red
+    if (res.points === 3) colorId = '10' // Green
+    else if (res.points > 0) colorId = '5' // Yellow
 
-          let colorId = '11' // Red
-          if (res.points === 3) colorId = '10' // Green
-          else if (res.points > 0) colorId = '5' // Yellow
-
-          return {
-            summary: `Verdania Election: ${res.title}`,
-            description: `Decision: ${res.decision}\nScore: ${res.points}/3\nXP: ${res.xpEarned}`,
-            start: { date: eventDate.toISOString().split('T')[0] },
-            end: { date: eventDate.toISOString().split('T')[0] },
-            colorId,
-          }
-        })
-
-        // Sequential creation to avoid rate limits
-        for (const event of events) {
-          await window.gapi.client.calendar.events.insert({
-            calendarId: 'primary',
-            resource: event,
-          })
-        }
-
-        resolve({
-          success: true,
-          calendarLink: 'https://calendar.google.com/',
-        })
-      } catch (err) {
-        reject(err)
-      }
-    }
-
-    if (window.gapi.client.getToken() === null) {
-      tokenClient.requestAccessToken({ prompt: 'consent' })
-    } else {
-      tokenClient.requestAccessToken({ prompt: '' })
+    return {
+      summary: `Verdania Election: ${res.title}`,
+      description: `Decision: ${res.decision}\nScore: ${res.points}/3\nXP: ${res.xpEarned}`,
+      start: { date: eventDate.toISOString().split('T')[0] },
+      end: { date: eventDate.toISOString().split('T')[0] },
+      colorId,
     }
   })
+
+  // Sequential creation to avoid rate limits
+  for (const event of events) {
+    await window.gapi.client.calendar.events.insert({
+      calendarId: 'primary',
+      resource: event,
+    })
+  }
+
+  return {
+    success: true,
+    calendarLink: 'https://calendar.google.com/',
+  }
 }
 
 export const useCalendarExport = () => {

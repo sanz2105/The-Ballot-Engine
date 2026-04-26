@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import XPBar from '../components/XPBar'
 import OptionButton from '../components/OptionButton'
 import NarratorPanel from '../components/NarratorPanel'

@@ -388,6 +388,7 @@ export default function ResultsScreen({ phaseResults, xp, unlockedBadges, user, 
           decision: PHASES[i].options.find(o => o.id === r.optionId)?.text || 'N/A',
           xpEarned: r.xpEarned,
           timeTakenSeconds: r.timeTakenSeconds,
+          // eslint-disable-next-line react-hooks/purity
           timestamp: Date.now()
         }))} playerName={user?.displayName || 'Guest Player'} />
 

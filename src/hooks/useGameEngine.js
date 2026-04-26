@@ -36,6 +36,7 @@ export const useGameEngine = () => {
   const [currentPhaseHintUsed, setCurrentPhaseHintUsed] = useState(false)
   const [gameScreen, setGameScreen] = useState('intro')
 
+  const currentPhase = PHASES[phaseIndex]
   const phaseStartTimeRef = useRef(null)
 
   useEffect(() => {
@@ -80,7 +81,7 @@ export const useGameEngine = () => {
       setCombo(newCombo)
       setMaxCombo(newMaxCombo)
 
-      const currentPhase = PHASES[phaseIndex]
+
       const correctOption = currentPhase.options.find((o) => o.isCorrect)
 
       if (option.isCorrect) {
@@ -157,7 +158,7 @@ export const useGameEngine = () => {
 
       trackPhaseComplete(currentPhase.number, option.id, option.points, timeTaken, newCombo)
     },
-    [stage, phaseIndex, combo, maxCombo, phasesCompleted, perfectPhases, fastCorrectAnswers, checkBadges]
+    [stage, combo, maxCombo, phasesCompleted, perfectPhases, fastCorrectAnswers, checkBadges, currentPhase]
   )
 
   const requestHint = useCallback(async () => {
@@ -236,7 +237,7 @@ export const useGameEngine = () => {
     }
   }, [])
 
-  const currentPhase = PHASES[phaseIndex]
+
 
   return {
     trackGameStarted,

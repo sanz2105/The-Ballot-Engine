@@ -1,4 +1,3 @@
-import React from 'react'
 import { useCalendarExport } from '../services/calendarService'
 import { useSheetsExport } from '../services/sheetsService'
 

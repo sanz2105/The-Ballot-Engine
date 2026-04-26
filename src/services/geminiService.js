@@ -98,7 +98,8 @@ Write exactly 2 sentences:
     perfTrace.putAttribute('phase_id', phase.id)
     perfTrace.stop()
     return text
-  } catch (err) {
+  } catch (error) {
+    console.error(error)
     perfTrace.stop()
     return "The geopolitical tides are shifting, Commissioner. While your decision is recorded, the echoes of history remind us that even the smallest choice can decide a nation's fate."
   }
@@ -126,7 +127,8 @@ Provide a subtle, dramatic hint (max 15 words) that points toward the best elect
     })
     sessionStorage.setItem(cacheKey, text)
     return text
-  } catch (err) {
+  } catch (error) {
+    console.error(error)
     return "Recall the core principles of electoral integrity as you weigh your path."
   }
 }

@@ -1,4 +1,3 @@
-import React from 'react'
 import { useTranslation } from '../services/translateService'
 
 const LANGUAGES = [
@@ -10,7 +9,7 @@ const LANGUAGES = [
 ]
 
 export default function LanguageSelector() {
-  const { language, setLanguage, isTranslating } = useTranslation()
+  const { language = 'en', setLanguage = () => {}, isTranslating = false } = useTranslation()
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
